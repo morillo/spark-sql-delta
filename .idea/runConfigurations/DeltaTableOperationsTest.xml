@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="DeltaTableOperationsTest" type="ScalaTestRunConfiguration" factoryName="ScalaTest">
+    <module name="spark-delta-example" />
+    <option name="allowRunningInParallel" value="false" />
+    <option name="selectedOptions">
+      <list />
+    </option>
+    <option name="testKind" value="Class" />
+    <option name="testClassPath" value="com.morillo.spark.delta.DeltaTableOperationsTest" />
+    <option name="workingDirectory" value="$PROJECT_DIR$" />
+    <option name="javaOptions" value="-Xmx4g -Xms2g" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
