@@ -35,8 +35,8 @@ spark-sql-delta/
 ## Technologies Used
 
 - **Scala**: 2.12.18
-- **Apache Spark**: 4.0.1
-- **Delta Lake**: 3.2.1
+- **Apache Spark**: 3.5.2
+- **Delta Lake**: 3.2.0
 - **Maven**: Build automation
 - **ScalaTest**: Testing framework
 - **Typesafe Config**: Configuration management
