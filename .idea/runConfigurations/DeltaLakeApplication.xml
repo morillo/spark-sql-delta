@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="DeltaLakeApplication" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.morillo.spark.delta.DeltaLakeApplication" />
+    <module name="spark-delta-example" />
+    <option name="VM_PARAMETERS" value="-Xmx4g -Xms2g" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <envs>
+      <env name="ENVIRONMENT" value="dev" />
+    </envs>
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.morillo.spark.delta.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
