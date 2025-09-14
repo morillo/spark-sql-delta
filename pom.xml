@@ -19,8 +19,8 @@
         <encoding>UTF-8</encoding>
         <scala.version>2.12.18</scala.version>
         <scala.compat.version>2.12</scala.compat.version>
-        <spark.version>4.0.1</spark.version>
-        <delta.version>3.2.1</delta.version>
+        <spark.version>3.5.2</spark.version>
+        <delta.version>3.2.0</delta.version>
         <scalatest.version>3.2.18</scalatest.version>
         <logback.version>1.4.14</logback.version>
         <typesafe.config.version>1.4.3</typesafe.config.version>
@@ -65,6 +65,23 @@
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
             <version>${typesafe.config.version}</version>
+        </dependency>
+
+        <!-- Jackson Core - Compatible with Scala module 2.15.2 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.15.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.15.4</version>
         </dependency>
 
         <!-- Logging -->
@@ -159,6 +176,7 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>TestSuiteReport.txt</filereports>
+                    <argLine>-Xmx4g -Xms2g --add-exports=java.base/sun.nio.ch=ALL-UNNAMED --add-exports=java.base/sun.security.action=ALL-UNNAMED --add-exports=java.base/sun.util.calendar=ALL-UNNAMED --add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.nio.cs=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED</argLine>
                 </configuration>
                 <executions>
                     <execution>
@@ -168,6 +186,38 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Maven Exec Plugin for running with proper JVM args -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.morillo.spark.delta.DeltaLakeApplication</mainClass>
+                    <options>
+                        <option>-Xmx4g</option>
+                        <option>-Xms2g</option>
+                        <option>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED</option>
+                        <option>--add-exports=java.base/sun.security.action=ALL-UNNAMED</option>
+                        <option>--add-exports=java.base/sun.util.calendar=ALL-UNNAMED</option>
+                        <option>--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.lang=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.io=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.net=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.nio=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.util=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.util.concurrent=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/sun.nio.ch=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/sun.nio.cs=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/sun.security.action=ALL-UNNAMED</option>
+                        <option>--add-opens=java.base/sun.util.calendar=ALL-UNNAMED</option>
+                        <option>--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED</option>
+                    </options>
+                </configuration>
             </plugin>
 
             <!-- Maven Shade Plugin for creating fat JAR -->
@@ -208,4 +258,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>package-jar</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </profile>
+    </profiles>
 </project>

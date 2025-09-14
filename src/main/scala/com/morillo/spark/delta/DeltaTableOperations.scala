@@ -1,6 +1,6 @@
 package com.morillo.spark.delta
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import io.delta.tables.DeltaTable
@@ -28,7 +28,7 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
   def createTable(): Unit = {
     logger.info(s"Creating Delta table at path: $tablePath")
 
-    val emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD[User], userSchema)
+    val emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD[org.apache.spark.sql.Row], userSchema)
     emptyDF.write
       .format("delta")
       .mode("overwrite")
