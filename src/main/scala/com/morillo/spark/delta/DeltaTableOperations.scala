@@ -176,6 +176,39 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
     deltaTable.detail().show(truncate = false)
   }
 
+  def getAvailableVersions(): Seq[Long] = {
+    logger.info("Getting available versions from Delta table history")
+
+    val deltaTable = DeltaTable.forPath(spark, tablePath)
+    val versions = deltaTable.history()
+      .select("version")
+      .as[Long]
+      .collect()
+      .sorted
+
+    logger.info(s"Available versions: ${versions.mkString(", ")}")
+    versions.toSeq
+  }
+
+  def getEarliestAvailableVersion(): Option[Long] = {
+    val versions = getAvailableVersions()
+    versions.headOption
+  }
+
+  def timeTravelSafe(versionNumber: Long): Option[DataFrame] = {
+    logger.info(s"Attempting to read Delta table at version: $versionNumber")
+
+    val availableVersions = getAvailableVersions()
+
+    if (availableVersions.contains(versionNumber)) {
+      logger.info(s"Version $versionNumber is available, proceeding with time travel")
+      Some(timeTravel(versionNumber))
+    } else {
+      logger.warn(s"Version $versionNumber is not available. Available versions: ${availableVersions.mkString(", ")}")
+      None
+    }
+  }
+
   def generateManifest(): Unit = {
     logger.info("Generating manifest for Delta table")
 
