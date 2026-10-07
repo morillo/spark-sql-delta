@@ -61,9 +61,24 @@ object DeltaLakeApplication {
       logger.info("Showing table details...")
       deltaOps.showTableDetails()
 
-      logger.info("Time travel example - reading version 0...")
-      val version0 = deltaOps.timeTravel(0L)
-      version0.show()
+      logger.info("Time travel example - attempting to read earliest available version...")
+      deltaOps.getEarliestAvailableVersion() match {
+        case Some(earliestVersion) =>
+          logger.info(s"Earliest available version is $earliestVersion, reading data...")
+          val versionData = deltaOps.timeTravel(earliestVersion)
+          versionData.show()
+        case None =>
+          logger.warn("No versions available for time travel")
+      }
+
+      logger.info("Attempting to read version 0 (safe mode)...")
+      deltaOps.timeTravelSafe(0L) match {
+        case Some(df) =>
+          logger.info("Successfully retrieved version 0")
+          df.show()
+        case None =>
+          logger.warn("Version 0 is not available (likely cleaned up by VACUUM)")
+      }
 
     } catch {
       case ex: Exception =>
