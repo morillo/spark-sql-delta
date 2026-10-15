@@ -25,11 +25,17 @@ spark-sql-delta/
 │       └── scala/
 │           └── com/morillo/spark/delta/
 │               └── DeltaTableOperationsTest.scala
+├── .github/
+│   ├── dependabot.yml
+│   └── workflows/ci.yml
 ├── .idea/
 │   └── runConfigurations/
+├── .pre-commit-config.yaml
+├── .scalafmt.conf
 ├── pom.xml
 ├── .gitignore
-└── README.md
+├── README.md
+└── RUNNING.md
 ```
 
 ## Technologies Used
@@ -186,6 +192,10 @@ The project includes comprehensive unit tests using ScalaTest:
 
 ```bash
 mvn test
+
+# Run one suite, or one test inside it
+mvn test -Dsuites=com.morillo.spark.delta.DeltaTableOperationsTest
+mvn test -Dsuites='com.morillo.spark.delta.DeltaTableOperationsTest @ should perform time travel'
 ```
 
 Tests cover:
@@ -194,6 +204,50 @@ Tests cover:
 - Update and merge operations
 - Time travel functionality
 - Table maintenance operations
+
+## Code Quality and CI
+
+The build is strict, and CI enforces it on every pull request and push to `main`.
+
+- **Compiler**: scalac runs with `-Xlint -Ywarn-dead-code -Ywarn-value-discard -Xfatal-warnings`
+  (the Scala 2.12 spelling of `-Werror`), so any warning fails the build.
+- **Formatting**: [scalafmt](https://scalameta.org/scalafmt/) through the
+  Spotless Maven plugin; rules live in `.scalafmt.conf`.
+
+  ```bash
+  mvn spotless:apply   # format the code
+  mvn spotless:check   # fail on unformatted code (also part of `mvn verify`)
+  ```
+
+- **Secrets**: [Gitleaks](https://github.com/gitleaks/gitleaks) scans the full
+  history in CI and the staged changes in the pre-commit hook.
+- **Dependencies**: Dependabot opens weekly update PRs for Maven dependencies
+  and GitHub Actions (`.github/dependabot.yml`). Spark and Scala minor/major
+  bumps are excluded on purpose: Delta Lake 3.2.x is built for Spark 3.5, and
+  Spark dictates the Scala version. On pull requests,
+  `dependency-review-action` flags newly added dependencies with known CVEs.
+- **CI** (`.github/workflows/ci.yml`): `mvn -B -ntp verify` on JDK 17 (compile,
+  tests, format check), plus the Gitleaks and dependency-review jobs. Actions
+  are pinned to commit SHAs and the workflow token is read-only.
+
+Run the same full check locally before pushing:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+mvn verify
+```
+
+### Pre-commit hooks
+
+```bash
+uv tool install pre-commit   # once per machine
+pre-commit install           # once per clone
+pre-commit run --all-files   # run every hook by hand
+```
+
+The hooks run Gitleaks and `mvn spotless:check` before each commit. Maven needs
+JDK 17; the hook finds it with `/usr/libexec/java_home -v 17` on macOS and
+falls back to `JAVA_HOME` elsewhere.
 
 ## Building for Distribution
 

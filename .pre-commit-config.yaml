@@ -1,0 +1,16 @@
+# Setup once per clone: uv tool install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: spotless-check
+        name: scalafmt check (mvn spotless:check)
+        # macOS: pick JDK 17 via java_home; elsewhere rely on the existing JAVA_HOME.
+        entry: bash -c 'export JAVA_HOME="$(/usr/libexec/java_home -v 17 2>/dev/null || echo "${JAVA_HOME:-}")"; mvn -q -B -ntp spotless:check'
+        language: system
+        files: '\.scala$'
+        pass_filenames: false

@@ -5,7 +5,6 @@ import org.scalatest.BeforeAndAfterAll
 import org.apache.spark.sql.SparkSession
 import com.morillo.spark.delta.model.User
 import java.sql.Timestamp
-import java.nio.file.{Files, Paths}
 import org.apache.commons.io.FileUtils
 import java.io.File
 

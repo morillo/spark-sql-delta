@@ -7,7 +7,7 @@ object ConfigManager {
   def loadConfig(environment: String = "dev"): Config = {
     val configFile = environment match {
       case "prod" | "production" => "application-prod.conf"
-      case _ => "application.conf"
+      case _                     => "application.conf"
     }
 
     ConfigFactory.load(configFile)

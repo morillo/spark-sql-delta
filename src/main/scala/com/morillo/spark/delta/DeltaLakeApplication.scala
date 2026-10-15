@@ -47,8 +47,24 @@ object DeltaLakeApplication {
 
       logger.info("Merging new users...")
       val newUsers = Seq(
-        User(6L, "Frank Miller", "frank.miller@example.com", 40, "HR", 65000.0, new Timestamp(System.currentTimeMillis())),
-        User(7L, "Grace Kelly", "grace.kelly@example.com", 26, "Engineering", 82000.0, new Timestamp(System.currentTimeMillis()))
+        User(
+          6L,
+          "Frank Miller",
+          "frank.miller@example.com",
+          40,
+          "HR",
+          65000.0,
+          new Timestamp(System.currentTimeMillis())
+        ),
+        User(
+          7L,
+          "Grace Kelly",
+          "grace.kelly@example.com",
+          26,
+          "Engineering",
+          82000.0,
+          new Timestamp(System.currentTimeMillis())
+        )
       )
       deltaOps.mergeUsers(newUsers)
 
