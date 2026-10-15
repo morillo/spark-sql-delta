@@ -2,7 +2,15 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <profile name="Maven 1" modules="spark-delta-example">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
       <parameters>
+        <parameter value="-release:17" />
+        <parameter value="-Xlint" />
+        <parameter value="-Wdead-code" />
+        <parameter value="-Wvalue-discard" />
+        <parameter value="-Werror" />
         <parameter value="-dependencyfile" />
         <parameter value="$PROJECT_DIR$/target/.scala_dependencies" />
       </parameters>
