@@ -3,6 +3,7 @@
 ## Summary of Changes
 
 ### What Was Fixed
+
 The application was failing with a `VersionNotFoundException` error when trying to time travel to version 0 of the Delta table. This was **NOT** related to the macOS Tahoe upgrade, but rather:
 
 1. **Root Cause**: Previous runs of the application created Delta table versions 0-39, which were subsequently cleaned up (VACUUMed)
@@ -10,11 +11,12 @@ The application was failing with a `VersionNotFoundException` error when trying 
 3. **The code was hardcoded** to try reading version 0, which no longer existed
 
 ### Code Improvements
+
 Added robust version checking and handling in `DeltaTableOperations.scala`:
 
-1. **`getAvailableVersions()`** - Retrieves all available versions from Delta history
-2. **`getEarliestAvailableVersion()`** - Gets the earliest available version
-3. **`timeTravelSafe()`** - Safely attempts time travel with availability checking
+1. **`getAvailableVersionRange()`** - The range of versions Delta can still reconstruct, taken from Delta itself rather than from `history()`. After log cleanup, `history()` can still list commits whose checkpoint is gone, and reading those fails.
+2. **`getAvailableVersions()`** / **`getEarliestAvailableVersion()`** - Convenience views over that range
+3. **`timeTravelSafe()`** - Returns `None` instead of throwing `VersionNotFoundException` when a version is no longer available
 
 The application now:
 - Automatically reads the earliest available version instead of hardcoding version 0
@@ -24,22 +26,27 @@ The application now:
 ## Running the Application
 
 ### Option 1: IntelliJ IDEA (Already Configured)
+
 Your IntelliJ run configuration already has the proper JVM arguments configured. Just click Run.
 
 ### Option 2: Command Line with spark-submit
 
 #### Prerequisites
-- Spark 3.5.2 installed at: `/usr/local/spark-versions/spark-3.5.2`
+
+- Spark 3.5.2 installed, with `SPARK_HOME` pointing at that installation (for example `export SPARK_HOME=/usr/local/spark-versions/spark-3.5.2`)
 - JAR file built: `target/spark-delta-example-1.0.0.jar`
 
 #### Build the JAR
+
 ```bash
 mvn clean package
+
 ```
 
 #### Run with spark-submit
+
 ```bash
-/usr/local/spark-versions/spark-3.5.2/bin/spark-submit \
+"$SPARK_HOME/bin/spark-submit" \
   --class com.morillo.spark.delta.DeltaLakeApplication \
   --master "local[*]" \
   --driver-memory 4g \
@@ -63,21 +70,25 @@ mvn clean package
 --add-opens=java.base/sun.util.calendar=ALL-UNNAMED \
 --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED" \
   target/spark-delta-example-1.0.0.jar
+
 ```
 
 ## Important Notes
 
 ### Java 17 + Spark 3.5.2 Requirements
+
 The `--add-opens` and `--add-exports` flags are **required** for Spark 3.5.2 to run on Java 17+. This is standard for Spark 3.x on modern Java versions and is not specific to macOS Tahoe.
 
 ### Spark Version Compatibility
+
 - **Application**: Uses Spark 3.5.2 (from Maven dependencies)
 - **Installed spark-submit**: `/opt/homebrew/bin/spark-submit` is Spark 4.0.1
-- **Correct spark-submit**: `/usr/local/spark-versions/spark-3.5.2/bin/spark-submit`
+- **Correct spark-submit**: the one under the Spark 3.5.2 installation, `$SPARK_HOME/bin/spark-submit`
 
-**Always use the Spark 3.5.2 spark-submit** to match your application's Spark version.
+**Always use the Spark 3.5.2 spark-submit** to match your application's Spark version. If a different Spark is first on your `PATH` (Homebrew installs 4.x), set `SPARK_HOME` to the 3.5.2 installation.
 
 ### macOS Tahoe (26.1) Compatibility
+
 The application runs perfectly on macOS Tahoe 26.1 with no additional changes needed beyond the version checking improvements.
 
 ## Expected Output
@@ -93,7 +104,7 @@ When you run the application, you should see:
 7. Merge operation with new users
 8. Table history
 9. Table details
-10. **Time travel to earliest available version** (version 40 in your case)
+10. **Time travel to earliest available version** (the actual version number depends on your table's history)
 11. **Warning message** indicating version 0 is not available
 
 All operations complete successfully without errors.
@@ -104,6 +115,7 @@ If you want to start with a fresh Delta table where version 0 will exist:
 
 ```bash
 rm -rf delta-table
+
 ```
 
 Then run the application again - version 0 will be created and accessible.

@@ -4,9 +4,11 @@ import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import io.delta.tables.DeltaTable
+import org.apache.spark.sql.delta.VersionNotFoundException
 import com.morillo.spark.delta.model.User
 import org.slf4j.LoggerFactory
 import java.sql.Timestamp
+import scala.util.{Failure, Success, Try}
 
 class DeltaTableOperations(spark: SparkSession, tablePath: String) {
 
@@ -176,36 +178,73 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
     deltaTable.detail().show(truncate = false)
   }
 
+  /**
+   * The range of versions Delta can still reconstruct, as (earliest, latest).
+   *
+   * `DeltaTable.history()` is not the right source for this: after log cleanup
+   * it can still list commits whose preceding checkpoint is gone, and reading
+   * those fails with [[VersionNotFoundException]]. Delta itself knows the exact
+   * range, and reports it in that exception, so we probe version 0 and use
+   * either the success or the exception's bounds.
+   */
+  def getAvailableVersionRange(): Option[(Long, Long)] = {
+    Try(timeTravel(0L)) match {
+      case Success(_) =>
+        val latest = DeltaTable.forPath(spark, tablePath).history(1).select("version").as[Long].head()
+        Some((0L, latest))
+      case Failure(e: VersionNotFoundException) =>
+        Some((e.earliest, e.latest))
+      case Failure(e) =>
+        throw e
+    }
+  }
+
+  /**
+   * Every version that can still be time-travelled to, oldest first.
+   *
+   * This materialises one Long per version on the driver, which is cheap for
+   * the handful of versions a table normally keeps but grows with the history,
+   * so a warning is logged past [[DeltaTableOperations.LargeHistoryThreshold]].
+   * Callers that need only a single version should use
+   * [[getEarliestAvailableVersion]] or [[timeTravelSafe]].
+   */
   def getAvailableVersions(): Seq[Long] = {
-    logger.info("Getting available versions from Delta table history")
+    logger.info("Getting available versions of the Delta table")
 
-    val deltaTable = DeltaTable.forPath(spark, tablePath)
-    val versions = deltaTable.history()
-      .select("version")
-      .as[Long]
-      .collect()
-      .sorted
+    val versions = getAvailableVersionRange()
+      .map { case (earliest, latest) => (earliest to latest).toSeq }
+      .getOrElse(Seq.empty)
 
+    if (versions.size > DeltaTableOperations.LargeHistoryThreshold) {
+      logger.warn(s"Delta table has ${versions.size} versions; listing all of them on the driver")
+    }
     logger.info(s"Available versions: ${versions.mkString(", ")}")
-    versions.toSeq
+    versions
   }
 
   def getEarliestAvailableVersion(): Option[Long] = {
-    val versions = getAvailableVersions()
-    versions.headOption
+    getAvailableVersionRange().map(_._1)
   }
 
+  def isVersionAvailable(versionNumber: Long): Boolean = {
+    getAvailableVersionRange().exists { case (earliest, latest) =>
+      versionNumber >= earliest && versionNumber <= latest
+    }
+  }
+
+  /** Reads the table at the given version, or None if Delta can no longer reconstruct it. */
   def timeTravelSafe(versionNumber: Long): Option[DataFrame] = {
     logger.info(s"Attempting to read Delta table at version: $versionNumber")
 
-    val availableVersions = getAvailableVersions()
-
-    if (availableVersions.contains(versionNumber)) {
-      logger.info(s"Version $versionNumber is available, proceeding with time travel")
-      Some(timeTravel(versionNumber))
-    } else {
-      logger.warn(s"Version $versionNumber is not available. Available versions: ${availableVersions.mkString(", ")}")
-      None
+    Try(timeTravel(versionNumber)) match {
+      case Success(df) =>
+        logger.info(s"Version $versionNumber is available, proceeding with time travel")
+        Some(df)
+      case Failure(e: VersionNotFoundException) =>
+        logger.warn(s"Version $versionNumber is not available (available versions: ${e.earliest} to ${e.latest})")
+        None
+      case Failure(e) =>
+        throw e
     }
   }
 
@@ -217,4 +256,9 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
 
     logger.info("Manifest generated successfully")
   }
+}
+
+object DeltaTableOperations {
+  /** Above this many versions, [[DeltaTableOperations.getAvailableVersions]] logs a warning. */
+  val LargeHistoryThreshold: Int = 1000
 }
