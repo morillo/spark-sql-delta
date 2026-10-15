@@ -129,21 +129,34 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.8.1</version>
+                <version>4.9.2</version>
                 <executions>
                     <execution>
                         <goals>
                             <goal>compile</goal>
                             <goal>testCompile</goal>
                         </goals>
-                        <configuration>
-                            <args>
-                                <arg>-dependencyfile</arg>
-                                <arg>${project.build.directory}/.scala_dependencies</arg>
-                            </args>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                    <!-- Strict compile: all lint checks on, warnings are errors
+                         (the JVM equivalent of Pyright strict in the Python repos).
+                         Scala 2.12 spelling of the 2.13 flags -Wdead-code,
+                         -Wvalue-discard and -Werror. -->
+                    <args>
+                        <arg>-deprecation</arg>
+                        <arg>-feature</arg>
+                        <arg>-unchecked</arg>
+                        <arg>-release:17</arg>
+                        <arg>-Xlint</arg>
+                        <arg>-Ywarn-dead-code</arg>
+                        <arg>-Ywarn-value-discard</arg>
+                        <arg>-Xfatal-warnings</arg>
+                        <arg>-dependencyfile</arg>
+                        <arg>${project.build.directory}/.scala_dependencies</arg>
+                    </args>
+                </configuration>
             </plugin>
 
             <!-- Maven Compiler Plugin -->
@@ -218,6 +231,33 @@
                         <option>--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED</option>
                     </options>
                 </configuration>
+            </plugin>
+
+            <!-- Spotless: scalafmt formatting. `mvn spotless:apply` formats the
+                 code; `mvn spotless:check` fails on unformatted code and is bound
+                 to the verify phase so CI enforces it. Rules: .scalafmt.conf -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.10.4</version>
+                <configuration>
+                    <scala>
+                        <scalafmt>
+                            <version>3.11.5</version>
+                            <file>${project.basedir}/.scalafmt.conf</file>
+                            <scalaMajorVersion>2.12</scalaMajorVersion>
+                        </scalafmt>
+                    </scala>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>spotless-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Maven Shade Plugin for creating fat JAR -->

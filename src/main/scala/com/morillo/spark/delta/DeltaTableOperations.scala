@@ -7,7 +7,6 @@ import io.delta.tables.DeltaTable
 import org.apache.spark.sql.delta.VersionNotFoundException
 import com.morillo.spark.delta.model.User
 import org.slf4j.LoggerFactory
-import java.sql.Timestamp
 import scala.util.{Failure, Success, Try}
 
 class DeltaTableOperations(spark: SparkSession, tablePath: String) {
@@ -16,16 +15,18 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
 
   import spark.implicits._
 
-  val userSchema: StructType = StructType(Array(
-    StructField("id", LongType, nullable = false),
-    StructField("name", StringType, nullable = false),
-    StructField("email", StringType, nullable = false),
-    StructField("age", IntegerType, nullable = false),
-    StructField("department", StringType, nullable = false),
-    StructField("salary", DoubleType, nullable = false),
-    StructField("created_at", TimestampType, nullable = false),
-    StructField("updated_at", TimestampType, nullable = true)
-  ))
+  val userSchema: StructType = StructType(
+    Array(
+      StructField("id", LongType, nullable = false),
+      StructField("name", StringType, nullable = false),
+      StructField("email", StringType, nullable = false),
+      StructField("age", IntegerType, nullable = false),
+      StructField("department", StringType, nullable = false),
+      StructField("salary", DoubleType, nullable = false),
+      StructField("created_at", TimestampType, nullable = false),
+      StructField("updated_at", TimestampType, nullable = true)
+    )
+  )
 
   def createTable(): Unit = {
     logger.info(s"Creating Delta table at path: $tablePath")
@@ -106,14 +107,16 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
         "existing.id = updates.id"
       )
       .whenMatched()
-      .updateExpr(Map(
-        "name" -> "updates.name",
-        "email" -> "updates.email",
-        "age" -> "updates.age",
-        "department" -> "updates.department",
-        "salary" -> "updates.salary",
-        "updated_at" -> "current_timestamp()"
-      ))
+      .updateExpr(
+        Map(
+          "name" -> "updates.name",
+          "email" -> "updates.email",
+          "age" -> "updates.age",
+          "department" -> "updates.department",
+          "salary" -> "updates.salary",
+          "updated_at" -> "current_timestamp()"
+        )
+      )
       .whenNotMatched()
       .insertAll()
       .execute()
@@ -178,15 +181,13 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
     deltaTable.detail().show(truncate = false)
   }
 
-  /**
-   * The range of versions Delta can still reconstruct, as (earliest, latest).
-   *
-   * `DeltaTable.history()` is not the right source for this: after log cleanup
-   * it can still list commits whose preceding checkpoint is gone, and reading
-   * those fails with [[VersionNotFoundException]]. Delta itself knows the exact
-   * range, and reports it in that exception, so we probe version 0 and use
-   * either the success or the exception's bounds.
-   */
+  /** The range of versions Delta can still reconstruct, as (earliest, latest).
+    *
+    * `DeltaTable.history()` is not the right source for this: after log cleanup it can still list commits whose
+    * preceding checkpoint is gone, and reading those fails with [[VersionNotFoundException]]. Delta itself knows the
+    * exact range, and reports it in that exception, so we probe version 0 and use either the success or the exception's
+    * bounds.
+    */
   def getAvailableVersionRange(): Option[(Long, Long)] = {
     Try(timeTravel(0L)) match {
       case Success(_) =>
@@ -199,15 +200,12 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
     }
   }
 
-  /**
-   * Every version that can still be time-travelled to, oldest first.
-   *
-   * This materialises one Long per version on the driver, which is cheap for
-   * the handful of versions a table normally keeps but grows with the history,
-   * so a warning is logged past [[DeltaTableOperations.LargeHistoryThreshold]].
-   * Callers that need only a single version should use
-   * [[getEarliestAvailableVersion]] or [[timeTravelSafe]].
-   */
+  /** Every version that can still be time-travelled to, oldest first.
+    *
+    * This materialises one Long per version on the driver, which is cheap for the handful of versions a table normally
+    * keeps but grows with the history, so a warning is logged past [[DeltaTableOperations.LargeHistoryThreshold]].
+    * Callers that need only a single version should use [[getEarliestAvailableVersion]] or [[timeTravelSafe]].
+    */
   def getAvailableVersions(): Seq[Long] = {
     logger.info("Getting available versions of the Delta table")
 
@@ -259,6 +257,7 @@ class DeltaTableOperations(spark: SparkSession, tablePath: String) {
 }
 
 object DeltaTableOperations {
+
   /** Above this many versions, [[DeltaTableOperations.getAvailableVersions]] logs a warning. */
   val LargeHistoryThreshold: Int = 1000
 }

@@ -10,7 +10,8 @@ object SparkSessionFactory {
     val master = config.getString("spark.master")
     val warehouseDir = config.getString("spark.sql.warehouse.dir")
 
-    val sparkBuilder = SparkSession.builder()
+    val sparkBuilder = SparkSession
+      .builder()
       .appName(appName)
       .master(master)
       .config("spark.sql.warehouse.dir", warehouseDir)
@@ -34,7 +35,8 @@ object SparkSessionFactory {
   }
 
   def createLocalSparkSession(appName: String = "DeltaLakeApp"): SparkSession = {
-    SparkSession.builder()
+    SparkSession
+      .builder()
       .appName(appName)
       .master("local[*]")
       .config("spark.sql.warehouse.dir", "./spark-warehouse")

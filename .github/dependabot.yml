@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # Spark is pinned to 3.5.x because Delta Lake 3.2.x is built for Spark 3.5
+      # (see README "Technologies Used"); bump it by hand together with Delta and
+      # the spark-submit distribution. Patch releases are still proposed.
+      - dependency-name: "org.apache.spark:*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # Scala minor versions are dictated by Spark (3.5.x = 2.12 or 2.13).
+      - dependency-name: "org.scala-lang:scala-library"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  # Keeps the commit-SHA pins in .github/workflows current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
