@@ -147,4 +147,22 @@ class DeltaTableOperationsTest extends AnyFunSuite with BeforeAndAfterAll {
     val history = deltaOps.getTableHistory()
     assert(history.count() >= 1)
   }
+
+  test("should report available versions and time travel safely") {
+    val users = getSampleUsers
+    deltaOps.writeUsers(users, "overwrite")
+
+    val versions = deltaOps.getAvailableVersions()
+    assert(versions.nonEmpty)
+    assert(versions == versions.sorted)
+    assert(deltaOps.getEarliestAvailableVersion().contains(versions.head))
+
+    val latest = versions.last
+    assert(deltaOps.isVersionAvailable(latest))
+    assert(deltaOps.timeTravelSafe(latest).map(_.count()).contains(3L))
+
+    val missing = latest + 1000
+    assert(!deltaOps.isVersionAvailable(missing))
+    assert(deltaOps.timeTravelSafe(missing).isEmpty)
+  }
 }
