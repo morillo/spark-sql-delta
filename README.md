@@ -40,9 +40,9 @@ spark-sql-delta/
 
 ## Technologies Used
 
-- **Scala**: 2.12.18
-- **Apache Spark**: 3.5.2
-- **Delta Lake**: 3.2.0
+- **Scala**: 2.13.18
+- **Apache Spark**: 4.2.0
+- **Delta Lake**: 4.4.1 (artifact `delta-spark_4.2_2.13`, the build for Spark 4.2)
 - **Maven**: Build automation
 - **ScalaTest**: Testing framework
 - **Typesafe Config**: Configuration management
@@ -83,7 +83,7 @@ If not automatically imported:
 ### 4. Configure Scala SDK
 
 1. Go to **File** → **Project Structure** → **Global Libraries**
-2. Add Scala SDK 2.12.x if not present
+2. Add Scala SDK 2.13.x if not present
 3. Ensure the project modules use the correct Scala SDK
 
 ## Running the Application
@@ -209,8 +209,8 @@ Tests cover:
 
 The build is strict, and CI enforces it on every pull request and push to `main`.
 
-- **Compiler**: scalac runs with `-Xlint -Ywarn-dead-code -Ywarn-value-discard -Xfatal-warnings`
-  (the Scala 2.12 spelling of `-Werror`), so any warning fails the build.
+- **Compiler**: scalac runs with `-Xlint -Wdead-code -Wvalue-discard -Werror`,
+  so any warning fails the build (the JVM equivalent of a strict type checker).
 - **Formatting**: [scalafmt](https://scalameta.org/scalafmt/) through the
   Spotless Maven plugin; rules live in `.scalafmt.conf`.
 
@@ -223,8 +223,8 @@ The build is strict, and CI enforces it on every pull request and push to `main`
   history in CI and the staged changes in the pre-commit hook.
 - **Dependencies**: Dependabot opens weekly update PRs for Maven dependencies
   and GitHub Actions (`.github/dependabot.yml`). Spark and Scala minor/major
-  bumps are excluded on purpose: Delta Lake 3.2.x is built for Spark 3.5, and
-  Spark dictates the Scala version. On pull requests,
+  bumps are excluded on purpose: each Delta release is built for specific Spark
+  lines (`delta-spark_4.2_2.13` for Spark 4.2), and Spark 4.x is Scala 2.13 only. On pull requests,
   `dependency-review-action` flags newly added dependencies with known CVEs.
 - **CI** (`.github/workflows/ci.yml`): `mvn -B -ntp verify` on JDK 17 (compile,
   tests, format check), plus the Gitleaks and dependency-review jobs. Actions
@@ -298,7 +298,7 @@ spark-submit \
    - On macOS with Homebrew: `brew install openjdk@17`
 
 2. **Scala Version Mismatch**
-   - Verify Scala 2.12.x is configured in IntelliJ
+   - Verify Scala 2.13.x is configured in IntelliJ
    - Check Maven dependencies for version conflicts
 
 3. **Memory Issues**

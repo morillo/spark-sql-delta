@@ -33,7 +33,7 @@ Your IntelliJ run configuration already has the proper JVM arguments configured.
 
 #### Prerequisites
 
-- Spark 3.5.2 installed, with `SPARK_HOME` pointing at that installation (for example `export SPARK_HOME=/usr/local/spark-versions/spark-3.5.2`)
+- Spark 4.2.0 installed, with `SPARK_HOME` pointing at that installation (for example `export SPARK_HOME=/usr/local/spark-versions/spark-4.2.0`)
 - JAR file built: `target/spark-delta-example-1.0.0.jar`
 
 #### Build the JAR
@@ -75,17 +75,17 @@ mvn clean package
 
 ## Important Notes
 
-### Java 17 + Spark 3.5.2 Requirements
+### Java 17 + Spark 4.2.0 Requirements
 
-The `--add-opens` and `--add-exports` flags are **required** for Spark 3.5.2 to run on Java 17+. This is standard for Spark 3.x on modern Java versions and is not specific to macOS Tahoe.
+The `--add-opens` and `--add-exports` flags are **required** when the application is launched outside `spark-submit` (IntelliJ, `mvn exec:java`, plain `java`) on Java 17+. `spark-submit` adds them itself. This is standard for Spark on modern Java versions and is not specific to macOS Tahoe.
 
 ### Spark Version Compatibility
 
-- **Application**: Uses Spark 3.5.2 (from Maven dependencies)
-- **Installed spark-submit**: `/opt/homebrew/bin/spark-submit` is Spark 4.0.1
-- **Correct spark-submit**: the one under the Spark 3.5.2 installation, `$SPARK_HOME/bin/spark-submit`
+- **Application**: Uses Spark 4.2.0 (from Maven dependencies)
+- **Installed spark-submit**: `/opt/homebrew/bin/spark-submit` is whatever Homebrew last upgraded to, currently 4.0.1
+- **Correct spark-submit**: the one under the Spark 4.2.0 installation, `$SPARK_HOME/bin/spark-submit`
 
-**Always use the Spark 3.5.2 spark-submit** to match your application's Spark version. If a different Spark is first on your `PATH` (Homebrew installs 4.x), set `SPARK_HOME` to the 3.5.2 installation.
+**Always use the Spark 4.2.0 spark-submit** to match your application's Spark version. If a different Spark is first on your `PATH`, set `SPARK_HOME` to the 4.2.0 installation.
 
 ### macOS Tahoe (26.1) Compatibility
 
