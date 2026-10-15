@@ -17,11 +17,11 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <scala.version>2.12.18</scala.version>
-        <scala.compat.version>2.12</scala.compat.version>
-        <spark.version>3.5.2</spark.version>
-        <delta.version>3.2.0</delta.version>
-        <scalatest.version>3.2.18</scalatest.version>
+        <scala.version>2.13.18</scala.version>
+        <scala.compat.version>2.13</scala.compat.version>
+        <spark.version>4.2.0</spark.version>
+        <delta.version>4.4.1</delta.version>
+        <scalatest.version>3.2.20</scalatest.version>
         <logback.version>1.4.14</logback.version>
         <typesafe.config.version>1.4.3</typesafe.config.version>
     </properties>
@@ -56,7 +56,7 @@
         <!-- Delta Lake -->
         <dependency>
             <groupId>io.delta</groupId>
-            <artifactId>delta-spark_${scala.compat.version}</artifactId>
+            <artifactId>delta-spark_4.2_${scala.compat.version}</artifactId>
             <version>${delta.version}</version>
         </dependency>
 
@@ -67,22 +67,6 @@
             <version>${typesafe.config.version}</version>
         </dependency>
 
-        <!-- Jackson Core - Compatible with Scala module 2.15.2 -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.15.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.15.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.15.4</version>
-        </dependency>
 
         <!-- Logging -->
         <dependency>
@@ -141,18 +125,16 @@
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <!-- Strict compile: all lint checks on, warnings are errors
-                         (the JVM equivalent of Pyright strict in the Python repos).
-                         Scala 2.12 spelling of the 2.13 flags -Wdead-code,
-                         -Wvalue-discard and -Werror. -->
+                         (the JVM equivalent of Pyright strict in the Python repos) -->
                     <args>
                         <arg>-deprecation</arg>
                         <arg>-feature</arg>
                         <arg>-unchecked</arg>
                         <arg>-release:17</arg>
                         <arg>-Xlint</arg>
-                        <arg>-Ywarn-dead-code</arg>
-                        <arg>-Ywarn-value-discard</arg>
-                        <arg>-Xfatal-warnings</arg>
+                        <arg>-Wdead-code</arg>
+                        <arg>-Wvalue-discard</arg>
+                        <arg>-Werror</arg>
                         <arg>-dependencyfile</arg>
                         <arg>${project.build.directory}/.scala_dependencies</arg>
                     </args>
@@ -245,7 +227,7 @@
                         <scalafmt>
                             <version>3.11.5</version>
                             <file>${project.basedir}/.scalafmt.conf</file>
-                            <scalaMajorVersion>2.12</scalaMajorVersion>
+                            <scalaMajorVersion>2.13</scalaMajorVersion>
                         </scalafmt>
                     </scala>
                 </configuration>
