@@ -23,7 +23,7 @@
         <delta.version>4.4.1</delta.version>
         <scalatest.version>3.2.20</scalatest.version>
         <logback.version>1.4.14</logback.version>
-        <typesafe.config.version>1.4.3</typesafe.config.version>
+        <typesafe.config.version>1.4.9</typesafe.config.version>
     </properties>
 
     <repositories>
