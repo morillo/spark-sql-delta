@@ -22,7 +22,7 @@
         <spark.version>4.2.0</spark.version>
         <delta.version>4.4.1</delta.version>
         <scalatest.version>3.2.20</scalatest.version>
-        <logback.version>1.4.14</logback.version>
+        <logback.version>1.6.5</logback.version>
         <typesafe.config.version>1.4.3</typesafe.config.version>
     </properties>
 
